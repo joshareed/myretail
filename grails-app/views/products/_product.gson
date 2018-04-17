@@ -1,0 +1,12 @@
+model {
+    Map product
+}
+
+json {
+    id product.id
+    name product.name
+    current_price {
+        value product.price
+        currency_code(product.currency ?: 'USD')
+    }
+}

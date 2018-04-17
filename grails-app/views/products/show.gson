@@ -1,0 +1,5 @@
+model {
+    Map product
+}
+
+json tmpl.product([product: product])

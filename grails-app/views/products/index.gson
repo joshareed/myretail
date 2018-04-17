@@ -1,0 +1,7 @@
+model {
+    List products = []
+}
+
+json {
+    products tmpl.product(products)
+}
