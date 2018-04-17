@@ -20,10 +20,19 @@ class ProductsControllerSpec extends Specification implements ControllerUnitTest
     }
 
     void "show returns the product"() {
-        when: "call show with id"
+        setup: "mock service"
+        controller.productsService = Mock(ProductsService)
+
+        and: "dummy product"
+        def product = [id: 12345, name: "Test", price: 123.45]
+
+        when: "call show action with id"
         def result = controller.show(12345)
 
-        then:
-        result == [product: [id: 12345, name: "Test", price: 123.45]]
+        then: "service is called"
+        1 * controller.productsService.getProduct(12345) >> product
+
+        and: "result of service is returned"
+        result == [product: product]
     }
 }
