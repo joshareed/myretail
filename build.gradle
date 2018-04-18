@@ -45,7 +45,10 @@ dependencies {
     compile "org.hibernate:hibernate-core:5.1.5.Final"
     compile "org.grails.plugins:views-json"
     compile "org.grails.plugins:views-json-templates"
-    compile 'org.dizitart:nitrite:3.0.0'
+    compile "org.dizitart:nitrite:3.0.0"
+    compile "com.squareup.retrofit2:retrofit:2.4.0"
+    compile "com.squareup.retrofit2:converter-jackson:2.4.0"
+    compile("com.squareup.retrofit2:adapter-java8:2.4.0")
 
     console "org.grails:grails-console"
 

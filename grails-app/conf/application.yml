@@ -61,6 +61,9 @@ grails:
         defaultScope: singleton
     converters:
         encoding: UTF-8
+---
+redSky:
+    baseUrl: https://redsky.target.com/
 
 ---
 hibernate:
@@ -74,6 +77,8 @@ dataSource:
     driverClassName: org.h2.Driver
     username: sa
     password: ''
+
+
 
 environments:
     development:
