@@ -72,7 +72,7 @@ class ProductsService {
         } catch (ExecutionException e) {
             def cause = e.cause
             if (cause instanceof HttpException && cause.code() == 404) {
-                throw new IllegalArgumentException("Invalid id: ${id}")
+                throw new NotFoundException(id?.toString())
             } else {
                 throw cause
             }

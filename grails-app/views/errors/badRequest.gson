@@ -1,0 +1,10 @@
+response.status 400
+
+model {
+    Exception error
+}
+
+json {
+    message error?.message
+    error 400
+}
