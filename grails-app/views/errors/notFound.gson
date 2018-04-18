@@ -1,0 +1,10 @@
+response.status 404
+
+model {
+    Exception error
+}
+
+json {
+    message error?.message
+    error 404
+}

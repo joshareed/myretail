@@ -24,4 +24,8 @@ class ProductsController {
 
         render view: 'show', model: [product: productsService.updatePrice(id, price)]
     }
+
+    def notFound(IllegalArgumentException e) {
+        render view: '/errors/notFound', model: [error: e]
+    }
 }
