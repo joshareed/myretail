@@ -1,9 +1,12 @@
 package com.myretail
 
+import com.myretail.redsky.*
 import grails.testing.services.ServiceUnitTest
-import org.dizitart.no2.Document
 import spock.lang.Specification
 
+import java.util.concurrent.CompletableFuture
+
+import static com.myretail.ProductsService.EXCLUDES
 import static org.dizitart.no2.Document.createDocument
 
 class ProductsServiceSpec extends Specification implements ServiceUnitTest<ProductsService> {
@@ -12,40 +15,60 @@ class ProductsServiceSpec extends Specification implements ServiceUnitTest<Produ
         setup:
         initializeNitriteDb([42: 9.99])
 
-        when: "non-existent id"
-        def product1 = service.getProduct(1)
-
-        then: "uses mocked price"
-        [id: 1, name: 'Test', price: 19.98] == product1
+        and:
+        service.redSkyApi = Mock(RedSkyApi)
+        RedSkyApiResponse mockedData = buildRedSkyProduct(42, 'Item Name', 123.45)
 
         when: "existing id"
-        def product2 = service.getProduct(42)
+        def product1 = service.getProduct(42)
 
         then:
-        [id: 42, name: 'Test', price: 9.99] == product2
+        1 * service.redSkyApi.get(42, EXCLUDES) >> CompletableFuture.completedFuture(mockedData)
+
+        and: "RedSky metadata and local price"
+        [id: 42, name: 'Item Name', price: 9.99] == product1
     }
 
     void "updatePrice sets the price in the local data store"() {
         setup:
         initializeNitriteDb()
 
+        and:
+        service.redSkyApi = Mock(RedSkyApi)
+        RedSkyApiResponse mockedData = buildRedSkyProduct(42, 'Item Name', 123.45)
+
         when: "no local price for id"
-        def product1 = service.getProduct(1)
+        def product1 = service.getProduct(42)
 
         then:
-        [id: 1, name: 'Test', price: 19.98] == product1
+        1 * service.redSkyApi.get(42, EXCLUDES) >> CompletableFuture.completedFuture(mockedData)
+
+        and: "RedSky price is used"
+        [id: 42, name: 'Item Name', price: 123.45] == product1
 
         when: "set price for id"
-        def product2 = service.updatePrice(1, 9.99)
+        def product2 = service.updatePrice(42, 9.99)
 
         then:
-        [id: 1, name: 'Test', price: 9.99] == product2
+        1 * service.redSkyApi.get(42, EXCLUDES) >> CompletableFuture.completedFuture(mockedData)
+
+        and: "local price is used"
+        [id: 42, name: 'Item Name', price: 9.99] == product2
     }
 
-    void "fetchRedskyProduct() returns mocked data"() {
-        expect: "mocked data"
-        service.fetchRedskyProduct(1) == [id: 1, name: 'Test', price: 19.98]
-        service.fetchRedskyProduct(42) == [id: 42, name: 'Test', price: 19.98]
+    void "fetchRedSkyProduct() calls RedSkyApi bean"() {
+        setup:
+        service.redSkyApi = Mock(RedSkyApi)
+        RedSkyApiResponse mockedData = buildRedSkyProduct(42, 'Item Name', 123.45)
+
+        when:
+        def result = service.fetchRedSkyProduct(42)
+
+        then:
+        1 * service.redSkyApi.get(42, EXCLUDES) >> CompletableFuture.completedFuture(mockedData)
+
+        and:
+        [id: 42, name: 'Item Name', price: 123.45] == result
     }
 
     void "buildProduct() builds properly formatted Map"() {
@@ -97,5 +120,19 @@ class ProductsServiceSpec extends Specification implements ServiceUnitTest<Produ
         products.each { id, price ->
             collection.insert(createDocument('id', (id as long)).put('price', price))
         }
+    }
+
+    protected buildRedSkyProduct(long id, String name, BigDecimal price) {
+        RedSkyProduct product = new RedSkyProduct(
+                item: new RedSkyItemGroup(
+                        tcin: id.toString(),
+                        productDescription: new RedSkyDescription(name)
+                ),
+                price: new RedSkyPriceGroup(
+                        listPrice: new RedSkyPrice(price)
+                )
+        )
+
+        new RedSkyApiResponse(product)
     }
 }
