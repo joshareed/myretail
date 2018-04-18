@@ -2,12 +2,14 @@ package com.myretail
 
 import org.dizitart.no2.Document
 import org.dizitart.no2.filters.Filters
+import org.springframework.beans.factory.annotation.Autowired
 
 import static org.dizitart.no2.Document.createDocument
 
 class ProductsService {
     static transactional = false
 
+    @Autowired(required = false)
     NitriteDb nitriteDb
 
     Map getProduct(long id) {
